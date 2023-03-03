@@ -6,7 +6,8 @@ import pandas as pd
 import math
 import json
 import pandas as pd
-from firebase_admin import credentials, firestore, storage, auth
+from firebase_admin import credentials, firestore, storage, auth, _http_client
+
 
 # Config Key
 
