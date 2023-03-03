@@ -1,12 +1,12 @@
 import streamlit as st
 import firebase_admin
-from firebase_admin import credentials
 from firebase_admin import db
 import pyrebase
 import pandas as pd
 import math
 import json
 import pandas as pd
+from firebase_admin import credentials, firestore, storage, auth
 
 # Config Key
 
@@ -66,7 +66,7 @@ data_ = data_ref.get()
 
 if st.checkbox('Mostrar Dataframe'):
     st.markdown('## Dashboard')
-    st.table(data_.val())
+    st.dataframe(data_.val())
 
 
 # Filter Paciente data
@@ -75,7 +75,7 @@ if st.checkbox('Filtro de Pacientes'):
   for data in data_.each():
     if data.val()["Nome Paciente"] == filter_name:
       data_ref.child(data.key()).remove()
-      st.dataframe(data.val())
+      st.table(data.val())
 
       
     
