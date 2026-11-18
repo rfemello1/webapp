@@ -1,0 +1,57 @@
+# =====================================================================
+#  CARD BATERIA - MELLO TOOL  (corrigido)
+#
+#  BUG: o card antigo lia sensor.mello_tools_battery_level /
+#  sensor.mello_tools_battery_state ("tools" com S). As entidades reais são
+#  sensor.mello_tool_battery_level / sensor.mello_tool_battery_state.
+#  Resultado: "Error while processing template" no log + card sempre cinza 0%.
+#  Também troquei "| int" por "| int(0)" e coloquei proteção para unavailable.
+#
+#  Requer: Mushroom + card-mod (já instalados).
+# =====================================================================
+type: custom:mushroom-template-card
+entity: sensor.mello_tool_battery_level
+primary: Mello Tool
+secondary: >-
+  {% set b = states('sensor.mello_tool_battery_level') %}
+  {% if b in ['unknown','unavailable'] %}Sem leitura{% else %}{{ b | int(0) }}%{% endif %}
+  {%- if is_state('sensor.mello_tool_battery_state','charging') %} · carregando{% endif %}
+icon: >-
+  {% set b = states('sensor.mello_tool_battery_level') | int(0) %}
+  {% set c = is_state('sensor.mello_tool_battery_state', 'charging') %}
+  {% if c and b < 100 %}mdi:battery-charging
+  {% elif b >= 90 %}mdi:battery
+  {% elif b >= 70 %}mdi:battery-80
+  {% elif b >= 50 %}mdi:battery-60
+  {% elif b >= 30 %}mdi:battery-40
+  {% elif b > 20 %}mdi:battery-20
+  {% else %}mdi:battery-alert{% endif %}
+icon_color: >-
+  {% set b = states('sensor.mello_tool_battery_level') | int(0) %}
+  {% set c = is_state('sensor.mello_tool_battery_state', 'charging') %}
+  {% if c and b < 100 %}green{% elif b <= 20 %}red{% else %}grey{% endif %}
+tap_action:
+  action: more-info
+card_mod:
+  style: |
+    {% set b = states('sensor.mello_tool_battery_level') | int(0) %}
+    {% set c = is_state('sensor.mello_tool_battery_state', 'charging') %}
+    ha-card {
+      {% if c and b < 100 %}
+        background: linear-gradient(145deg, rgba(0,255,120,.28), rgba(0,150,70,.14)) !important;
+        border: 1px solid rgba(0,255,120,.65) !important;
+        animation: bateria-carregando 1.8s ease-in-out infinite;
+      {% elif b <= 20 %}
+        background: linear-gradient(145deg, rgba(255,45,45,.32), rgba(170,10,10,.16)) !important;
+        border: 1px solid rgba(255,60,60,.70) !important;
+        box-shadow: 0 0 10px rgba(255,40,40,.42) !important;
+      {% else %}
+        border: 1px solid rgba(120,120,120,.12) !important;
+        box-shadow: none !important;
+      {% endif %}
+      transition: background .4s ease, box-shadow .4s ease, border .4s ease;
+    }
+    @keyframes bateria-carregando {
+      0%, 100% { box-shadow: 0 0 6px rgba(0,255,120,.25), inset 0 0 18px rgba(0,255,120,.12); }
+      50%      { box-shadow: 0 0 16px rgba(0,255,120,.70), inset 0 0 30px rgba(0,255,120,.28); }
+    }

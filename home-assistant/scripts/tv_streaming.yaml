@@ -1,0 +1,102 @@
+# =====================================================================
+#  TV - ABRIR STREAMING (script único, usado pelos botões do controle)
+#  Onde colar: scripts.yaml  (ou Configurações > Scripts > Editar em YAML)
+#
+#  POR QUE MUDOU:
+#   Os botões antigos chamavam media_player.select_source na integração
+#   custom "samsungtv_smart" (media_player.sala_70_sala_2 etc.). Essa
+#   integração está apontando para IPs antigos das TVs (ex.: 70" Sala
+#   configurada em 192.168.68.7, mas a TV hoje está em 192.168.68.15),
+#   então as entidades ficam presas em "off" e os comandos se perdem.
+#   Este script usa a integração OFICIAL "samsungtv" (que acompanha a
+#   troca de IP sozinha) via play_media/app, e só cai para a custom
+#   como plano B.
+# =====================================================================
+tv_abrir_streaming:
+  alias: "TV - Abrir streaming"
+  description: "Liga a TV (se preciso) e abre o app de streaming escolhido."
+  icon: mdi:television-play
+  mode: queued
+  max: 5
+  fields:
+    tv:
+      name: TV
+      required: true
+      default: sala_70
+      selector:
+        select:
+          options:
+            - label: '70" Sala'
+              value: sala_70
+            - label: '75" Sala de TV'
+              value: sala_tv_75
+    app:
+      name: App
+      required: true
+      default: Netflix
+      selector:
+        select:
+          options: [Netflix, YouTube, Prime Video, Disney+, HBO MAX, Globoplay, Spotify]
+
+  variables:
+    # ---- Mapa das TVs ------------------------------------------------
+    #  local    = integração oficial samsungtv (WebSocket, segue o IP)
+    #  st       = SmartThings (serve para LIGAR a TV pela nuvem)
+    #  fallback = samsungtv_smart (custom) - plano B
+    tvs:
+      sala_70:
+        local: media_player.sala_70_sala
+        st: media_player.sala_de_estar_70_sala
+        fallback: media_player.sala_70_sala_2
+      sala_tv_75:
+        local: media_player.75_crystal_uhd_un75u8100fgxzd
+        st: media_player.sala_de_tv_sala_de_tv_75
+        fallback: media_player.media_player_sala_de_tv_sala_de_tv_75
+    # ---- App IDs Tizen (validar 1x: veja AGENT.md > "Validar App IDs") -
+    app_ids:
+      Netflix: "3201907018807"
+      YouTube: "111299001912"
+      Prime Video: "3201910019365"
+      Disney+: "3201901017640"
+      HBO MAX: "3202301029760"
+      Globoplay: "3201908019041"
+      Spotify: "3201606009684"
+    alvo: "{{ tvs[tv] }}"
+    app_id: "{{ app_ids[app] }}"
+
+  sequence:
+    # 1) Liga a TV se estiver desligada (SmartThings acorda pela nuvem)
+    - if:
+        - condition: template
+          value_template: "{{ not is_state(alvo.local, 'on') }}"
+      then:
+        - action: media_player.turn_on
+          target:
+            entity_id: "{{ [alvo.st, alvo.local] | select('has_value') | list }}"
+          continue_on_error: true
+        - wait_template: "{{ is_state(alvo.local, 'on') }}"
+          timeout: "00:00:25"
+          continue_on_timeout: true
+        # Tizen precisa de ~4 s depois de ligar para aceitar app launch
+        - delay: "00:00:04"
+
+    # 2) Abre o app pela integração oficial
+    - action: media_player.play_media
+      target:
+        entity_id: "{{ alvo.local }}"
+      data:
+        media_content_type: app
+        media_content_id: "{{ app_id }}"
+      continue_on_error: true
+
+    # 3) Plano B: integração custom, só se ela estiver de pé
+    - if:
+        - condition: template
+          value_template: "{{ is_state(alvo.fallback, 'on') }}"
+      then:
+        - action: media_player.select_source
+          target:
+            entity_id: "{{ alvo.fallback }}"
+          data:
+            source: "{{ app }}"
+          continue_on_error: true

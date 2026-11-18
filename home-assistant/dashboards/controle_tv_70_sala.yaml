@@ -1,0 +1,156 @@
+# =====================================================================
+#  CONTROLE PERSONALIZADO - TV 70" SALA  (Universal Remote Card v4.x)
+#  Cole em: Dashboard > Editar > Adicionar card > Manual
+#
+#  O QUE FOI CORRIGIDO
+#   - remote_id / media_player_id agora apontam para a integração OFICIAL
+#     samsungtv (remote.sala_70_sala / media_player.sala_70_sala), que
+#     está online. Antes: *_sala_70_sala_2 (samsungtv_smart, presa em off).
+#   - Botões de streaming chamam script.tv_abrir_streaming (liga a TV se
+#     precisar, espera, abre o app e tem fallback).
+#   - Visual: linha de apps com cores das marcas, touchpad central,
+#     volume em slider, ícones consistentes.
+#
+#  Para a 75": troque sala_70 -> sala_tv_75 nos botões e os IDs para
+#  remote/media_player.75_crystal_uhd_un75u8100fgxzd.
+# =====================================================================
+type: custom:universal-remote-card
+platform: Samsung TV
+remote_id: remote.sala_70_sala
+media_player_id: media_player.sala_70_sala
+autofill_entity_id: true
+haptics: true
+
+rows:
+  - [power, null, home, back, menu]
+  - [netflix, youtube, prime, disney]
+  - [hbo, globo, spotify, source]
+  - [touchpad]
+  - [rewind, play_pause, fast_forward]
+  - [volume_mute, volume_slider, channel_up, channel_down]
+
+custom_actions:
+  # ---------------- Streaming ----------------
+  - type: button
+    name: netflix
+    icon: mdi:netflix
+    label: Netflix
+    styles: |
+      :host { --icon-color: #E50914; }
+    tap_action:
+      action: perform-action
+      perform_action: script.tv_abrir_streaming
+      data: { tv: sala_70, app: Netflix }
+
+  - type: button
+    name: youtube
+    icon: mdi:youtube
+    label: YouTube
+    styles: |
+      :host { --icon-color: #FF0000; }
+    tap_action:
+      action: perform-action
+      perform_action: script.tv_abrir_streaming
+      data: { tv: sala_70, app: YouTube }
+
+  - type: button
+    name: prime
+    icon: mdi:alpha-p-box
+    label: Prime
+    styles: |
+      :host { --icon-color: #00A8E1; }
+    tap_action:
+      action: perform-action
+      perform_action: script.tv_abrir_streaming
+      data: { tv: sala_70, app: Prime Video }
+
+  - type: button
+    name: disney
+    icon: mdi:alpha-d-circle
+    label: Disney+
+    styles: |
+      :host { --icon-color: #113CCF; }
+    tap_action:
+      action: perform-action
+      perform_action: script.tv_abrir_streaming
+      data: { tv: sala_70, app: Disney+ }
+
+  - type: button
+    name: hbo
+    icon: mdi:alpha-m-box
+    label: Max
+    styles: |
+      :host { --icon-color: #7B2FF7; }
+    tap_action:
+      action: perform-action
+      perform_action: script.tv_abrir_streaming
+      data: { tv: sala_70, app: HBO MAX }
+
+  - type: button
+    name: globo
+    icon: mdi:alpha-g-circle
+    label: Globoplay
+    styles: |
+      :host { --icon-color: #FF4B23; }
+    tap_action:
+      action: perform-action
+      perform_action: script.tv_abrir_streaming
+      data: { tv: sala_70, app: Globoplay }
+
+  - type: button
+    name: spotify
+    icon: mdi:spotify
+    label: Spotify
+    styles: |
+      :host { --icon-color: #1DB954; }
+    tap_action:
+      action: perform-action
+      perform_action: script.tv_abrir_streaming
+      data: { tv: sala_70, app: Spotify }
+
+  # ---------------- Teclas ----------------
+  - type: button
+    name: power
+    icon: mdi:power
+    styles: |
+      :host { --icon-color: {{ 'var(--green-color)' if is_state('media_player.sala_70_sala','on') else 'var(--red-color)' }}; }
+    tap_action:
+      action: perform-action
+      perform_action: media_player.toggle
+      target:
+        entity_id: >-
+          {{ 'media_player.sala_70_sala' if is_state('media_player.sala_70_sala','on')
+             else 'media_player.sala_de_estar_70_sala' }}
+
+  - type: button
+    name: source
+    icon: mdi:import
+    label: Fonte
+    tap_action:
+      action: key
+      key: KEY_SOURCE
+
+  - type: slider
+    name: volume_slider
+    range: [0, 1]
+    step: 0.01
+    value_attribute: volume_level
+    entity_id: media_player.sala_de_estar_70_sala   # SmartThings expõe volume_level
+    tap_action:
+      action: perform-action
+      perform_action: media_player.volume_set
+      target:
+        entity_id: media_player.sala_de_estar_70_sala
+      data:
+        volume_level: "{{ value | float(0) }}"
+
+styles: |
+  :host {
+    --size: 46px;
+    --button-border-radius: 14px;
+    --primary-background-color: rgba(255,255,255,0.04);
+  }
+  ha-card {
+    padding: 12px;
+    border-radius: 22px;
+  }
