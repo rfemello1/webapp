@@ -54,7 +54,7 @@ tv_abrir_streaming:
         fallback: media_player.media_player_sala_de_tv_sala_de_tv_75
     # ---- App IDs Tizen (validar 1x: veja AGENT.md > "Validar App IDs") -
     app_ids:
-      Netflix: "3201907018807"
+      Netflix: "11101200001"   # validado 18/11 na 70" (3201907018807 abre o Samsung TV Plus)
       YouTube: "111299001912"
       Prime Video: "3201910019365"
       Disney+: "3201901017640"
@@ -77,8 +77,9 @@ tv_abrir_streaming:
         - wait_template: "{{ is_state(alvo.local, 'on') }}"
           timeout: "00:00:25"
           continue_on_timeout: true
-        # Tizen precisa de ~4 s depois de ligar para aceitar app launch
-        - delay: "00:00:04"
+        # Ao ligar, a TV volta para o último canal depois de alguns segundos e
+        # "atropela" o app (testado 18/11: com ~7 s o app foi substituído pelo canal).
+        - delay: "00:00:10"
 
     # 2) Abre o app pela integração oficial
     - action: media_player.play_media

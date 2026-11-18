@@ -52,7 +52,7 @@ e cole os arquivos. 👉 *Ideia de melhoria:* versionar `/config` num repositór
 
 | App | ID | Validado? |
 |---|---|---|
-| Netflix | 3201907018807 | ☐ |
+| Netflix | **11101200001** | ☑ 18/11 na 70" (`3201907018807` abre o Samsung TV Plus — não usar) |
 | YouTube | 111299001912 | ☐ |
 | Prime Video | 3201910019365 | ☐ |
 | Disney+ | 3201901017640 | ☐ |
@@ -87,6 +87,7 @@ Updates: {{ states.update | selectattr('state','eq','on') | map(attribute='name'
 ## 8. Histórico de problemas & soluções (adicione novos no topo)
 | Data | Problema | Causa | Solução | Status |
 |---|---|---|---|---|
+| 2026-11-18 | Netflix abria o Samsung TV Plus | App ID novo `3201907018807` não vale para a UN70U8500 | Usar ID antigo `11101200001`; esperar ~10 s após ligar antes de abrir o app | ✅ testado |
 | 2026-11-18 | Botões de streaming do controle da TV não funcionam | `samsungtv_smart` com IP antigo (70": .7 → .15); entidades presas em `off` | Script `tv_streaming.yaml` usando integração oficial + reserva DHCP | ⏳ aplicar |
 | 2026-11-18 | Card bateria Mello Tool com erro de template | `mello_tools_*` vs `mello_tool_*` | `card_bateria_mello_tool.yaml` | ⏳ aplicar |
 
